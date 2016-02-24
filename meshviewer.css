@@ -1,0 +1,203 @@
+html {
+    height: 100%;
+}
+
+body {
+    font-family: sans-serif, Arial, Verdana, "Trebuchet MS";
+    background-color: darkgray;
+    background-image: -webkit-gradient(
+            linear,
+            right bottom,
+            right top,
+            color-stop(0, #949494),
+            color-stop(0.72, #E3E3E3)
+    );
+    background-image: -o-linear-gradient(top, #949494 0%, #E3E3E3 72%);
+    background-image: -moz-linear-gradient(top, #949494 0%, #E3E3E3 72%);
+    background-image: -webkit-linear-gradient(top, #949494 0%, #E3E3E3 72%);
+    background-image: -ms-linear-gradient(top, #949494 0%, #E3E3E3 72%);
+    background-image: linear-gradient(to top, #949494 0%, #E3E3E3 72%);
+    margin: 0px;
+    overflow: hidden;
+    min-height: 100%;
+}
+
+#progress {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-top: -50px;
+    margin-left: -50px;
+    width: 140px;
+    height: 20px;
+    display: block;
+    z-index: 100;
+}
+
+#info {
+    color: rgba(120, 120, 120, 1);
+    width: 100%;
+    text-align: left;
+
+    z-index: 100;
+}
+
+#info a, .button {
+    color: #f00;
+    text-decoration: underline;
+    cursor: pointer
+}
+
+#buttons {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 140px;
+    padding: 20px;
+    border-radius: 10px;
+    color: rgba(120, 120, 120, 1);
+    border: 1px solid rgba(150, 150, 150, 0.8);
+    /*background-color: rgba(170, 170, 170, 0.6);*/
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.buttons-header {
+    border-bottom: 1px solid gray;
+    cursor: pointer;
+    margin-top: 20px;
+    font-size: 11px;
+    color: blue;
+}
+
+#buttons p {
+    font-size: 10px;
+}
+
+#face-buttons div {
+    margin-top: 0;
+}
+
+#face-buttons-table {
+    width: 120px;
+    height: 120px;
+    /*background: url('assets/images/facets_120.png') no-repeat top left;*/
+}
+
+.face-button {
+    width: 40px;
+    height: 40px;
+    float: left;
+}
+
+#face-button-1 {
+    background: url('assets/images/cube-facets/facets_120_tranche_01.png') no-repeat top left;
+}
+
+#face-button-2 {
+    background: url('assets/images/cube-facets/facets_120_tranche_02.png') no-repeat top left;
+}
+
+#face-button-3 {
+    background: url('assets/images/cube-facets/facets_120_tranche_03.png') no-repeat top left;
+}
+
+#face-button-4 {
+    background: url('assets/images/cube-facets/facets_120_tranche_04.png') no-repeat top left;
+}
+
+#face-button-5 {
+    background: url('assets/images/cube-facets/facets_120_tranche_05.png') no-repeat top left;
+}
+
+#face-button-6 {
+    background: url('assets/images/cube-facets/facets_120_tranche_06.png') no-repeat top left;
+}
+
+#face-button-7 {
+    background: url('assets/images/cube-facets/facets_120_tranche_07.png') no-repeat top left;
+}
+
+#face-button-8 {
+    background: url('assets/images/cube-facets/facets_120_tranche_08.png') no-repeat top left;
+}
+
+#face-button-9 {
+    background: url('assets/images/cube-facets/facets_120_tranche_09.png') no-repeat top left;
+}
+
+.clearfix {
+    clear: both;
+}
+
+/* Sphere */
+.sphere-button {
+    width: 25px;
+    height: 53px;
+    margin: 0;
+    float: left;
+}
+
+#sphere-button-1 {
+    background: url('assets/images/sphere_01.png') no-repeat top left;
+}
+
+#sphere-button-2 {
+    background: url('assets/images/sphere_02.png') no-repeat top left;
+}
+
+#advanced-toggler-buttons A {
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 8px;
+    padding: 4px;
+    margin-top: 4px;
+    margin-right: 4px;
+    line-height: 20px;
+    background-color: gray;
+}
+
+#advanced-toggler-buttons div {
+    padding-top: 5px;
+}
+
+#advanced-toggler-buttons span {
+    /*float: right;*/
+    margin-left: 20px;
+}
+
+#leftMenu {
+    width: 20%;
+    float: left;
+    display: block;
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    padding: 10px;
+}
+
+#leftMenu a {
+    color: #000000;
+}
+
+#leftMenu img {
+    width: 100%;
+}
+
+#mainViewer {
+
+}
+
+#timer {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+#weight {
+    position: absolute;
+    top: 45px;
+    right: 20px;
+}

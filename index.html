@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Three.js OBJ viewer</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <LINK rel="stylesheet" href="meshviewer.css" type="text/css">
+    <link rel="stylesheet" href="switch/switchery.css"/>
+
+</head>
+
+<body>
+<div id="leftMenu">
+
+    <img src="examples/test/texture.jpg">
+    <a><strong>姓名：</strong></a> <a>图灵</a>
+</div>
+
+<div id="mainViewer">
+
+    <script src="lib/jquery/jquery.min.js"></script>
+    <script src="lib/jquery-ui/jquery-ui.min.js"></script>
+    <script src="lib/threejs/three.min.js"></script>
+
+    <script src="lib/threejs/loaders/BinaryLoader.js"></script>
+    <script src="lib/threejs/loaders/MTLLoader.js"></script>
+    <script src="lib/threejs/loaders/OBJMTLLoader.js"></script>
+
+    <script src="lib/threejs/loaders/UTF8Loader.js"></script>
+
+    <script src="lib/threejs/loaders/ctm/lzma.js"></script>
+    <script src="lib/threejs/loaders/ctm/CTMLoader.js"></script>
+
+    <script src="lib/threejs/Detector.js"></script>
+    <script src="lib/threejs/TrackballControls.js"></script>
+    <script src="lib/threejs/libs/stats.min.js"></script>
+
+    <script id="objectView" src="meshviewer.js"></script>
+
+    <div id="viewer"></div>
+    <div id="progress"></div>
+    <div id="timer"></div>
+    <div id="weight"></div>
+
+    <div id="buttons">
+        <div id="face-buttons">
+            <div class="buttons-header">方位</div>
+            <div class="buttons-detail">
+                <div id="face-buttons-table">
+                    <div class="face-button" id="face-button-1"></div>
+                    <div class="face-button" id="face-button-2" onclick="javascript:showTop()"></div>
+                    <div class="face-button" id="face-button-3"></div>
+                    <div class="clearfix"></div>
+                    <div class="face-button" id="face-button-4" onclick="javascript:showLeft()"></div>
+                    <div class="face-button" id="face-button-5" onclick="javascript:showFront()"></div>
+                    <div class="face-button" id="face-button-6" onclick="javascript:showRight()"></div>
+                    <div class="clearfix"></div>
+                    <div class="face-button" id="face-button-7"></div>
+                    <div class="face-button" id="face-button-8" onclick="javascript:showBottom()"></div>
+                    <div class="face-button" id="face-button-9" onclick="javascript:showBack()"></div>
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+        <div id="advanced-buttons">
+            <div class="buttons-header">控制</div>
+            <div class="buttons-detail">
+
+                <div id="pan-buttons">
+                    <p>平移</p>
+                    <img src="assets/icons/24/square_empty_icon&24.png"/><img src="assets/icons/24/sq_br_up_icon&24.png"
+                                                                              onclick="javascript:translateUp()"/><br/>
+                    <img src="assets/icons/24/sq_br_prev_icon&24.png" onclick="javascript:translateLeft()"/><img
+                        src="assets/icons/24/square_shape_icon&24.png" onclick="javascript:translateReset()"/><img
+                        src="assets/icons/24/sq_br_next_icon&24.png" onclick="javascript:translateRight()"/><br/>
+                    <img src="assets/icons/24/square_empty_icon&24.png"/><img
+                        src="assets/icons/24/sq_br_down_icon&24.png" onclick="javascript:translateDown()"/><br/>
+                </div>
+                <!--<div id="zoom-buttons">
+                    <P>缩放</P>
+                    <img src="assets/icons/24/sq_minus_icon&24.png" onclick="javascript:zoomOut()"/>
+                    <img src="assets/icons/24/sq_plus_icon&24.png" onclick="javascript:zoomIn()"/><br/>
+                </div>-->
+                <div id="advanced-toggler-buttons">
+                    <P>开关</P>
+
+                    <div>
+                        <a>自动旋转</a>
+                        <input id="cb_rotate" type="checkbox" class="js-switch js-check-change" checked
+                               onchange="toggleChange(event,'rotate')"/><br>
+                    </div>
+
+                    <div >
+                        <a>显示轴线</a>
+                        <input id="cb_axis" type="checkbox" class="js-switch js-check-change"
+                               onchange="toggleChange(event,'axis')"/><br>
+                    </div>
+
+                    <div >
+                        <a>显示边框</a>
+                        <input id="cb_bbox" type="checkbox" class="js-switch js-check-change"
+                               onchange="toggleChange(event,'bbox')"/><br>
+                    </div>
+                    <div>
+                        <a>显示底座</a>
+                        <input id="cb_plinth" type="checkbox" class="js-switch js-check-change"
+                               onchange="toggleChange(event,'plinth')"/><br>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script src="switch/switchery.js"></script>
+<script>
+    meshviewer({
+        'meshFile': 'examples/test/mesh2.obj',
+        'mtlFile': 'examples/test/mesh2.mtl',
+        'container': '#viewer',
+        'format': 'obj'
+    });
+
+
+    // ios7 toggle
+    var elems = document.querySelectorAll('.js-switch');
+    for (var i = 0; i < elems.length; i++) {
+        var switchery = new Switchery(elems[i], {size: "small"});
+    }
+
+    var cb_rotate = document.querySelector('#cb_rotate');
+    setTimeout(function () {
+        rotate = cb_rotate.checked;
+    }, 500);
+
+
+    toggleChange = function (event, name) {
+        switch (name) {
+
+            case 'rotate':
+                rotate = event.target.checked;
+                break;
+            case 'axis':
+                rotate = event.target.checked ? addAxes() : removeAxes();
+                break;
+            case 'bbox':
+                rotate = event.target.checked ? addBBox() : removeBBox();
+                break;
+            case 'plinth':
+                rotate = event.target.checked ? addPlinth() : removePlinth();
+                break;
+        }
+        rotate = cb_rotate.checked;
+    }
+
+</script>
+</html>

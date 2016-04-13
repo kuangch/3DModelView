@@ -21,12 +21,93 @@ var timer, weight;
 var quat = new THREE.Quaternion();
 var axis = new THREE.Vector3(0, 1, 0);
 
+var objLoader = new THREE.OBJMTLLoader();
+
+var mSettings;
 
 function meshviewer(settings) {
     size_verif(settings);
 }
 
+var callbackProgress = function (progress, result) {
+    console.log(progress);
+};
+
+var callbackFinished = function (result) {
+    loaded = result;
+    handle_update(result, 1);
+
+};
+
+var obj;
+var textureMat;
+var blankMat;
+var isShowWire;
+var isShoTexture;
+
+
+var onLoad = function (object) {
+
+    var zAxis = new THREE.Vector3(1, 0, 0);
+    var xAxis = new THREE.Vector3(0, 1, 0);
+
+    // Rotation on X Axis to reflect front face as shown in Meshlab
+    object.rotateOnAxis(xAxis, 90 * Math.PI / 180);
+
+    // object.rotateOnAxis(zAxis, -90 * Math.PI/180);
+
+    scene.add(obj);
+
+    boundingbox = new THREE.BoundingBoxHelper(object, 0xff0000);
+
+
+    boundingbox.update();
+
+    sceneRadiusForCamera = Math.max(
+        boundingbox.box.max.y - boundingbox.box.min.y,
+        boundingbox.box.max.z - boundingbox.box.min.z,
+        boundingbox.box.max.x - boundingbox.box.min.x
+    ) / 2 * (1 + Math.sqrt(5)); // golden number to beautify display
+
+    console.log(sceneRadiusForCamera);
+
+    showFront();
+
+
+    jQuery("#progress").hide();
+
+    // Copy the object to a global variable, so that it's accessible from everyWhere in this code
+    objectCopy = object;
+
+    resetObjectPosition();
+}
+
+var onProgress = function (object) {
+    var progression = (object.position / object.totalSize) * 100;
+
+    jQuery("#progress").show();
+
+    if (progression > 85) {
+        jQuery("#progress").progressbar({
+            value: false
+        });
+    } else {
+
+        jQuery("#progress").progressbar({
+            value: progression
+        });
+    }
+
+    console.log(object.totalSize + " " + object.position + " " + progression);
+
+    jQuery("#timer").html(Date.now() - timer);
+    jQuery("#weight").html(object.totalSize);
+}
+
 function init(settings) {
+    mSettings = settings;
+    isShowWire = settings.showWireframe;
+    isShoTexture = settings.showTexture == undefined || settings.showTexture ? true : false;
     timer = Date.now();
     if (!Detector.webgl) Detector.addGetWebGLMessage();
 
@@ -66,74 +147,6 @@ function init(settings) {
     var backLight = new THREE.DirectionalLight(0xffeedd);
     backLight.position.set(-1, -1, 0.5).normalize();
     //scene.add( backLight );
-
-    var callbackProgress = function (progress, result) {
-        console.log(progress);
-    }
-
-    var callbackFinished = function (result) {
-        loaded = result;
-        handle_update(result, 1);
-
-    }
-
-    var onLoad = function (object) {
-
-        var zAxis = new THREE.Vector3(1, 0, 0);
-        var xAxis = new THREE.Vector3(0, 1, 0);
-
-        // Rotation on X Axis to reflect front face as shown in Meshlab
-        object.rotateOnAxis(xAxis, 90 * Math.PI / 180);
-
-        // object.rotateOnAxis(zAxis, -90 * Math.PI/180);
-
-        scene.add(object);
-
-        boundingbox = new THREE.BoundingBoxHelper(object, 0xff0000);
-
-
-        boundingbox.update();
-
-        sceneRadiusForCamera = Math.max(
-            boundingbox.box.max.y - boundingbox.box.min.y,
-            boundingbox.box.max.z - boundingbox.box.min.z,
-            boundingbox.box.max.x - boundingbox.box.min.x
-        ) / 2 * (1 + Math.sqrt(5)); // golden number to beautify display
-
-        console.log(sceneRadiusForCamera);
-
-        showFront();
-
-
-        jQuery("#progress").hide();
-
-        // Copy the object to a global variable, so that it's accessible from everyWhere in this code
-        objectCopy = object;
-
-        resetObjectPosition();
-    }
-
-    var onProgress = function (object) {
-        var progression = (object.position / object.totalSize) * 100;
-
-        jQuery("#progress").show();
-
-        if (progression > 85) {
-            jQuery("#progress").progressbar({
-                value: false
-            });
-        } else {
-
-            jQuery("#progress").progressbar({
-                value: progression
-            });
-        }
-
-        console.log(object.totalSize + " " + object.position + " " + progression);
-
-        jQuery("#timer").html(Date.now() - timer);
-        jQuery("#weight").html(object.totalSize);
-    }
 
 
     /*___________________________________________________________________________
@@ -176,40 +189,49 @@ function init(settings) {
             }, {normalizeRGB: true});
             break;
         case 'obj':
-            var loader = new THREE.OBJMTLLoader();
-            loader.callbackProgress = callbackProgress();
-            loader.callbackSync = callbackProgress();
+
+            objLoader.callbackProgress = callbackProgress();
+            objLoader.callbackSync = callbackProgress();
 
             // Overwriting OBJMTLLoader to allow progression monitoring
-            loader.load = function (url, mtlurl, onLoad, onProgress, onError) {
+            objLoader.load = function (url, mtlurl, onLoad, onProgress, onError) {
                 var scope = this;
                 var mtlLoader = new THREE.MTLLoader(url.substr(0, url.lastIndexOf("/") + 1));
 
-                mtlLoader.load(mtlurl, function (materials) {
-                    var materialsCreator = materials;
-                    materialsCreator.preload();
-                    var loader = new THREE.XHRLoader(scope.manager);
-                    loader.setCrossOrigin(this.crossOrigin);
-                    // Overwriting OBJMTLLoader to allow progression monitoring : adding onProgress & onError to loader.load function
-                    loader.load(url, function (text) {
-                        var object = scope.parse(text);
-                        object.traverse(function (object) {
-                            if (object instanceof THREE.Mesh) {
-                                if (object.material.name) {
-                                    var material = materialsCreator.create(object.material.name);
-                                    if (material) object.material = material;
+                mtlLoader.load('', function (materials) {
+                    blankMat = materials;
+                    mtlLoader.load(mtlurl, function (materials) {
+                        textureMat = materials;
+                        var materialsCreator = materials;
+                        materialsCreator.preload();
+                        var loader = new THREE.XHRLoader(scope.manager);
+                        loader.setCrossOrigin(this.crossOrigin);
+                        // Overwriting OBJMTLLoader to allow progression monitoring : adding onProgress & onError to loader.load function
+                        loader.load(url, function (text) {
+                            var object = scope.parse(text);
+                            obj = object;
+                            obj.traverse(function (object) {
+                                if (object instanceof THREE.Mesh) {
+                                    if (object.material.name) {
+
+                                        var material = (settings.showTexture == undefined || settings.showTexture ? textureMat : blankMat).create(object.material.name);
+                                        material.setValues({color: 0xffffff, wireframe: settings.showWireframe ? true : false});
+                                        if (material) object.material = material;
+
+                                    }
                                 }
-                            }
-                        });
-                        onLoad(object);
-                    }, onProgress, onError);
+                            });
+                            onLoad(obj);
+                        }, onProgress, onError);
 
+                    });
                 });
-            }
 
-            var loadFunctionBackup = loader.load;
+            };
 
-            loader.load(settings.meshFile, settings.mtlFile, onLoad, onProgress);
+            var loadFunctionBackup = objLoader.load;
+
+            objLoader.load(settings.meshFile, settings.mtlFile, onLoad, onProgress);
             break;
     }
 
@@ -221,6 +243,48 @@ function init(settings) {
 
     camera.lookAt(new THREE.Vector3(0, -1, 0));
     console.log(camera);
+}
+
+function change2grid() {
+
+    changeObjStatus(isShoTexture ? textureMat : blankMat, {color: 0xffffff, wireframe: true});
+    isShowWire = true;
+}
+
+function change2entity() {
+
+    changeObjStatus(isShoTexture ? textureMat : blankMat, {color: 0xffffff, wireframe: false});
+    isShowWire = false;
+
+}
+
+function addTexture() {
+
+    changeObjStatus(textureMat,{color: 0xffffff, wireframe: isShowWire ? true : false});
+    isShoTexture = true;
+}
+
+function removeTexture() {
+
+    changeObjStatus(blankMat,{color: 0xffffff, wireframe: isShowWire ? true : false});
+    isShoTexture = false;
+
+}
+
+function changeObjStatus(mat, settings) {
+
+    scene.remove(obj);
+    obj.traverse(function (object) {
+        if (object instanceof THREE.Mesh) {
+            if (object.material.name) {
+                var material = mat.create(object.material.name);
+                material.setValues(settings);
+                if (material) object.material = material;
+            }
+        }
+        scene.add(obj);
+    });
+
 }
 
 function onWindowResize() {

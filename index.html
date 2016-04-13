@@ -10,11 +10,6 @@
 </head>
 
 <body>
-<div id="leftMenu">
-
-    <img src="examples/test/texture.jpg">
-    <a><strong>姓名：</strong></a> <a>图灵</a>
-</div>
 
 <div id="mainViewer">
 
@@ -90,13 +85,13 @@
                                onchange="toggleChange(event,'rotate')"/><br>
                     </div>
 
-                    <div >
+                    <div>
                         <a>显示轴线</a>
                         <input id="cb_axis" type="checkbox" class="js-switch js-check-change"
                                onchange="toggleChange(event,'axis')"/><br>
                     </div>
 
-                    <div >
+                    <div>
                         <a>显示边框</a>
                         <input id="cb_bbox" type="checkbox" class="js-switch js-check-change"
                                onchange="toggleChange(event,'bbox')"/><br>
@@ -105,6 +100,16 @@
                         <a>显示底座</a>
                         <input id="cb_plinth" type="checkbox" class="js-switch js-check-change"
                                onchange="toggleChange(event,'plinth')"/><br>
+                    </div>
+                    <div>
+                        <a>显示网格</a>
+                        <input id="cb_grid" type="checkbox" class="js-switch js-check-change"
+                               onchange="toggleChange(event,'grid')"/><br>
+                    </div>
+                    <div>
+                        <a>显示纹理</a>
+                        <input id="cb_texture" type="checkbox" class="js-switch js-check-change" checked
+                               onchange="toggleChange(event,'texture')"/><br>
                     </div>
                 </div>
             </div>
@@ -115,8 +120,8 @@
 <script src="switch/switchery.js"></script>
 <script>
     meshviewer({
-        'meshFile': 'examples/test/mesh2.obj',
-        'mtlFile': 'examples/test/mesh2.mtl',
+        'meshFile': 'examples/test/neutral.obj',
+        'mtlFile': 'examples/test/neutral.mtl',
         'container': '#viewer',
         'format': 'obj'
     });
@@ -149,9 +154,16 @@
             case 'plinth':
                 rotate = event.target.checked ? addPlinth() : removePlinth();
                 break;
+            case 'grid':
+                rotate = event.target.checked ? change2grid() : change2entity();
+                break;
+            case 'texture':
+                rotate = event.target.checked ? addTexture() : removeTexture();
+                break;
         }
         rotate = cb_rotate.checked;
     }
+
 
 </script>
 </html>

@@ -2,9 +2,7 @@
 
 基于Three.JS (WebGL)实现3d模型展示
 
-## Howto 
-
-This viewer is easy to handle, give the path to the obj & mtl files, the ID where you want the viewer to be in, eventually a format if it can't be guessed
+## 使用
 
 ``` html 
 <script type="text/javascript">
@@ -18,3 +16,6 @@ meshviewer({
 <div id="viewer">
 </div>
 ```
+
+## 效果
+![image](https://github.com/kuangch/3DModelView/blob/master/assets/facemodel.gif)

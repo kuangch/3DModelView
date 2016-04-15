@@ -108,7 +108,7 @@
                     </div>
                     <div>
                         <a>显示纹理</a>
-                        <input id="cb_texture" type="checkbox" class="js-switch js-check-change" checked
+                        <input id="cb_texture" type="checkbox" class="js-switch js-check-change"
                                onchange="toggleChange(event,'texture')"/><br>
                     </div>
                 </div>
@@ -122,6 +122,7 @@
     meshviewer({
         'meshFile': 'examples/test/neutral.obj',
         'mtlFile': 'examples/test/neutral.mtl',
+        'showTexture': false,
         'container': '#viewer',
         'format': 'obj'
     });

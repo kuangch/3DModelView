@@ -214,7 +214,8 @@ function init(settings) {
                                 if (object instanceof THREE.Mesh) {
                                     if (object.material.name) {
 
-                                        var material = (settings.showTexture == undefined || settings.showTexture ? textureMat : blankMat).create(object.material.name);
+                                        // var material = (settings.showTexture == undefined || settings.showTexture ? textureMat : blankMat).create(object.material.name);
+                                        var material = textureMat.create(object.material.name);
                                         material.setValues({color: 0xffffff, wireframe: settings.showWireframe ? true : false});
                                         if (material) object.material = material;
 
@@ -513,6 +514,8 @@ function animate(settings) {
     render();
 }
 
+var isFistRender = true;
+
 function render() {
     if (rotate) {
         // objectCopy.rotation.y += 0.01;
@@ -522,6 +525,11 @@ function render() {
     //controls.target(cameraTarget);
     controls.update(); //for cameras
     renderer.render(scene, camera);
+    if(isFistRender && mSettings.showTexture == false){
+        removeTexture();
+        isFistRender = false;
+    }
+
 }
 
 function buildAxes(length) {

@@ -108,7 +108,7 @@
                     </div>
                     <div>
                         <a>显示纹理</a>
-                        <input id="cb_texture" type="checkbox" class="js-switch js-check-change"
+                        <input id="cb_texture" type="checkbox" class="js-switch js-check-change" checked
                                onchange="toggleChange(event,'texture')"/><br>
                     </div>
                 </div>
@@ -137,6 +137,11 @@
     var cb_rotate = document.querySelector('#cb_rotate');
     setTimeout(function () {
         rotate = cb_rotate.checked;
+    }, 500);
+
+	var cb_texture = document.querySelector('#cb_texture');
+	setTimeout(function () {
+        cb_texture.checked ? addTexture() : removeTexture();
     }, 500);
 
 

@@ -274,6 +274,9 @@ function removeTexture() {
 
 function changeObjStatus(mat, settings) {
 
+    if(obj === undefined){
+        return;
+    }
     scene.remove(obj);
     obj.traverse(function (object) {
         if (object instanceof THREE.Mesh) {

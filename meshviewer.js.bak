@@ -81,7 +81,7 @@ var onLoad = function (object) {
 
     resetObjectPosition();
 
-    animate(mSettings);
+	animate(settings);
 }
 
 var onProgress = function (object) {
@@ -276,7 +276,7 @@ function removeTexture() {
 
 function changeObjStatus(mat, settings) {
 
-    if (obj === undefined) {
+    if(obj === undefined){
         return;
     }
     scene.remove(obj);
@@ -529,12 +529,12 @@ function render() {
     //console.log(scene.position);
     //controls.target(cameraTarget);
     controls.update(); //for cameras
+    renderer.render(scene, camera);
     if(isFistRender && mSettings.showTexture == false){
         removeTexture();
         isFistRender = false;
-		return
     }
-	renderer.render(scene, camera);
+
 }
 
 function buildAxes(length) {

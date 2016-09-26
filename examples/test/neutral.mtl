@@ -1,20 +1,14 @@
-newmtl Texture_0
-Ka 1.000000 1.000000 1.000000
-Ks 0.000000 0.000000 0.000000
+newmtl material_textureImage
+Ka 0.2 0.2 0.2
+Kd 0.80000001 0.80000001 0.80000001
+Ks 1 1 1
 d 1
-Ns 0.00000
-illum 1
-map_Kd texture.jpg
-
+Ns 75
+illum 2
+map_Kd multi-texture.jpg
+###
 newmtl Untextured
 Ka 1.000000 1.000000 1.000000
-Ks 0.000000 0.000000 0.000000
-d 1
-Ns 0.00000
-illum 1
-
-newmtl NO_MATERIAL
-Ka 1.000000 0.000000 0.000000
 Ks 0.000000 0.000000 0.000000
 d 1
 Ns 0.00000

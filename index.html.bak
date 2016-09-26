@@ -139,6 +139,8 @@
         rotate = cb_rotate.checked;
     }, 500);
 
+	
+
 
     toggleChange = function (event, name) {
         switch (name) {

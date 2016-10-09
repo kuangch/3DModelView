@@ -529,12 +529,11 @@ function render() {
     //console.log(scene.position);
     //controls.target(cameraTarget);
     controls.update(); //for cameras
+	renderer.render(scene, camera);
     if(isFistRender && mSettings.showTexture == false){
         removeTexture();
         isFistRender = false;
-		return
     }
-	renderer.render(scene, camera);
 }
 
 function buildAxes(length) {

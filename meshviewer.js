@@ -7,18 +7,15 @@
 
 var container, stats;
 
-var camera, scene, renderer, controls, boundingbox, sceneRadiusForCamera, plinth, cubeMaterial, objectCopy, rotate, aFrame;
+var camera, scene, renderer, controls,
+    boundingbox, sceneRadiusForCamera,
+    plinth, cubeMaterial, objectCopy, rotate, axes,
+    ambient,frontLight;
 
 var size = new Array();
 
-var mouseX = 0, mouseY = 0;
-
-var windowHalfX = window.innerWidth / 2;
-var windowHalfY = window.innerHeight / 2;
-
 var timer, weight;
 
-var quat = new THREE.Quaternion();
 var axis = new THREE.Vector3(0, 1, 0);
 
 var objLoader = new THREE.OBJMTLLoader();
@@ -31,12 +28,6 @@ function meshviewer(settings) {
 
 var callbackProgress = function (progress, result) {
     console.log(progress);
-};
-
-var callbackFinished = function (result) {
-    loaded = result;
-    handle_update(result, 1);
-
 };
 
 var obj;
@@ -81,51 +72,54 @@ var onLoad = function (object) {
 
     resetObjectPosition();
 
-    animate(mSettings);
-}
+	animate(mSettings);
+};
 
 var onProgress = function (object) {
-    var progression = (object.position / object.totalSize) * 100;
+    var progression = (object.loaded / object.total) * 100;
 
     jQuery("#progress").show();
 
-    if (progression > 85) {
-        jQuery("#progress").progressbar({
-            value: false
-        });
-    } else {
+    //if (progression > 85) {
+    //    jQuery("#progress").progressbar({
+    //        value: false
+    //    });
+    //} else {
+    //
+    //    jQuery("#progress").progressbar({
+    //        value: progression
+    //    });
+    //}
 
-        jQuery("#progress").progressbar({
-            value: progression
-        });
-    }
+    console.log(object.total + " " + object.loaded + " " + progression);
 
-    console.log(object.totalSize + " " + object.position + " " + progression);
-
-    jQuery("#timer").html(Date.now() - timer);
-    jQuery("#weight").html(object.totalSize);
-}
+};
 
 function init(settings) {
+    isFistRender = true;
     mSettings = settings;
     isShowWire = settings.showWireframe;
     isShoTexture = settings.showTexture == undefined || settings.showTexture ? true : false;
-    timer = Date.now();
     if (!Detector.webgl) Detector.addGetWebGLMessage();
 
-    renderer = new THREE.WebGLRenderer({alpha: true});
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    if(!renderer)
+        renderer = new THREE.WebGLRenderer({alpha: true});
+        renderer.setSize($(settings.container).width(), $(settings.container).height());
 
-    scene = new THREE.Scene();
+    if(!scene)
+        scene = new THREE.Scene();
     //scene.fog = new THREE.Fog( 0x000000, 800, 2000 );
 
     // Add axes
-    axes = buildAxes(1000);
+    if(!axes)
+        axes = buildAxes(1000);
 
-    camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000);
-    camera.position.y = 800;
+    if(!camera)
+        camera = new THREE.PerspectiveCamera(45, $(settings.container).width() / $(settings.container).height(), 1, 2000);
+        camera.position.y = 800;
 
-    controls = new THREE.TrackballControls(camera);
+    if(!controls)
+        controls = new THREE.TrackballControls(camera);
 
     controls.rotateSpeed = 1.0;
     controls.zoomSpeed = 1.2;
@@ -139,16 +133,18 @@ function init(settings) {
 
     controls.keys = [65, 83, 68]; // [ rotateKey, zoomKey, panKey ]
 
-    var ambient = new THREE.AmbientLight(0xaaaaaa);
-    scene.add(ambient);
+    if (!ambient)
+        ambient = new THREE.AmbientLight(0xaaaaaa);
+        scene.add(ambient);
 
-    var frontLight = new THREE.DirectionalLight(0xffeedd);
-    frontLight.position.set(1, 1, 0.5).normalize();
-    scene.add(frontLight);
+    if (!frontLight)
+        frontLight = new THREE.DirectionalLight(0xffeedd);
+        frontLight.position.set(1, 1, 0.5).normalize();
+        scene.add(frontLight);
 
-    var backLight = new THREE.DirectionalLight(0xffeedd);
-    backLight.position.set(-1, -1, 0.5).normalize();
-    //scene.add( backLight );
+    //var backLight = new THREE.DirectionalLight(0xffeedd);
+    //backLight.position.set(-1, -1, 0.5).normalize();
+    ////scene.add( backLight );
 
 
     /*___________________________________________________________________________
@@ -156,7 +152,18 @@ function init(settings) {
      OBJECT LOADING
      ___________________________________________________________________________
      */
+    loadMTL(settings);
 
+    jQuery(settings.container).html("");
+    jQuery(settings.container).append(renderer.domElement);
+    document.addEventListener('mousemove', onDocumentMouseMove, false);
+    window.addEventListener('resize', onWindowResize, false);
+
+    camera.lookAt(new THREE.Vector3(0, -1, 0));
+    console.log(camera);
+}
+
+function loadMTL(settings){
     switch (settings.format) {
         case 'utf8':
             var loader = new THREE.UTF8Loader();
@@ -192,13 +199,13 @@ function init(settings) {
             break;
         case 'obj':
 
-            objLoader.callbackProgress = callbackProgress();
-            objLoader.callbackSync = callbackProgress();
+            objLoader.callbackProgress = callbackProgress;
+            objLoader.callbackSync = callbackProgress;
 
             // Overwriting OBJMTLLoader to allow progression monitoring
             objLoader.load = function (url, mtlurl, onLoad, onProgress, onError) {
                 var scope = this;
-                var mtlLoader = new THREE.MTLLoader(url.substr(0, url.lastIndexOf("/") + 1));
+                var mtlLoader = new THREE.MTLLoader(url.substr(0, Math.max(url.lastIndexOf("/"), url.lastIndexOf("\\")) + 1));
 
                 mtlLoader.load('', function (materials) {
                     blankMat = materials;
@@ -237,15 +244,6 @@ function init(settings) {
             objLoader.load(settings.meshFile, settings.mtlFile, onLoad, onProgress);
             break;
     }
-
-
-    jQuery(settings.container).html("");
-    jQuery(settings.container).append(renderer.domElement);
-    document.addEventListener('mousemove', onDocumentMouseMove, false);
-    window.addEventListener('resize', onWindowResize, false);
-
-    camera.lookAt(new THREE.Vector3(0, -1, 0));
-    console.log(camera);
 }
 
 function change2grid() {
@@ -276,7 +274,7 @@ function removeTexture() {
 
 function changeObjStatus(mat, settings) {
 
-    if (obj === undefined) {
+    if(obj === undefined){
         return;
     }
     scene.remove(obj);
@@ -529,7 +527,7 @@ function render() {
     //console.log(scene.position);
     //controls.target(cameraTarget);
     controls.update(); //for cameras
-	renderer.render(scene, camera);
+    renderer.render(scene, camera);
     if(isFistRender && mSettings.showTexture == false){
         removeTexture();
         isFistRender = false;

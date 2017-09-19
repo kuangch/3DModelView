@@ -187,7 +187,7 @@ body {
 }
 
 #mainViewer {
-
+    background:-webkit-gradient(linear, 0 0, 0 100%, from(#030306), to(#7676EC));
 }
 
 #timer {

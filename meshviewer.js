@@ -17,6 +17,7 @@ var size = new Array();
 var timer, weight;
 
 var axis = new THREE.Vector3(0, 1, 0);
+var objColor = 0x999999;
 
 var objLoader = new THREE.OBJMTLLoader();
 
@@ -95,6 +96,15 @@ var onProgress = function (object) {
 
 };
 
+var frontLight = new THREE.PointLight(0xffffff);
+var backLight = new THREE.PointLight(0xffffff);
+var rightLight = new THREE.PointLight(0xffffff);
+var leftLight = new THREE.PointLight(0xffffff);
+var topLight = new THREE.PointLight(0xffffff);
+var bottomLight = new THREE.PointLight(0xffffff);
+
+frontLight
+
 function init(settings) {
     isFistRender = true;
     mSettings = settings;
@@ -133,19 +143,15 @@ function init(settings) {
 
     controls.keys = [65, 83, 68]; // [ rotateKey, zoomKey, panKey ]
 
-    if (!ambient)
-        ambient = new THREE.AmbientLight(0xaaaaaa);
-        scene.add(ambient);
+    var ambient = new THREE.AmbientLight(0xaaaaaa);
+    //scene.add(ambient);
 
-    if (!frontLight)
-        frontLight = new THREE.DirectionalLight(0xffeedd);
-        frontLight.position.set(1, 1, 0.5).normalize();
-        scene.add(frontLight);
-
-    //var backLight = new THREE.DirectionalLight(0xffeedd);
-    //backLight.position.set(-1, -1, 0.5).normalize();
-    ////scene.add( backLight );
-
+    scene.add(frontLight);
+    scene.add( backLight );
+    scene.add( leftLight );
+    scene.add( rightLight );
+    scene.add( topLight );
+    scene.add( bottomLight );
 
     /*___________________________________________________________________________
 
@@ -225,7 +231,7 @@ function loadMTL(settings){
 
                                         // var material = (settings.showTexture == undefined || settings.showTexture ? textureMat : blankMat).create(object.material.name);
                                         var material = textureMat.create(object.material.name);
-                                        material.setValues({color: 0xffffff, wireframe: settings.showWireframe ? true : false});
+                                        material.setValues(returnMtmSett());
                                         if (material) object.material = material;
 
                                     }
@@ -248,26 +254,35 @@ function loadMTL(settings){
 
 function change2grid() {
 
-    changeObjStatus(isShoTexture ? textureMat : blankMat, {color: 0xffffff, wireframe: true});
+    changeObjStatus(isShoTexture ? textureMat : blankMat, {color: objColor, wireframe: true});
     isShowWire = true;
 }
 
 function change2entity() {
 
-    changeObjStatus(isShoTexture ? textureMat : blankMat, {color: 0xffffff, wireframe: false});
+    changeObjStatus(isShoTexture ? textureMat : blankMat, {color: objColor, wireframe: false});
     isShowWire = false;
 
 }
 
 function addTexture() {
 
-    changeObjStatus(textureMat,{color: 0xffffff, wireframe: isShowWire ? true : false});
+    changeObjStatus(textureMat,{color: objColor, wireframe: isShowWire ? true : false});
     isShoTexture = true;
 }
 
+function returnMtmSett() {
+    return {
+        color: objColor,
+        wireframe: isShowWire ? true : false,
+        //ambient:0x262626,
+        //specular:0x666666,
+        //shininess:64,
+    }
+}
 function removeTexture() {
 
-    changeObjStatus(blankMat,{color: 0xffffff, wireframe: isShowWire ? true : false});
+    changeObjStatus(blankMat,returnMtmSett());
     isShoTexture = false;
 
 }
@@ -448,6 +463,16 @@ function resetObjectPosition() {
     objectCopy.position.x = -boundingbox.box.min.x - size.x / 2;
     objectCopy.position.y = -boundingbox.box.min.y - size.y / 2;
     objectCopy.position.z = -boundingbox.box.min.z - size.z / 2;
+
+    // set position
+    var dis = 1000;
+    frontLight.position.set(boundingbox.box.max.x + dis, dis/10,0);
+    backLight.position.set(boundingbox.box.min.x - dis,0, 0);
+    leftLight.position.set(0, 0, boundingbox.box.max.z + dis);
+    rightLight.position.set(0, 0, boundingbox.box.min.z - dis);
+    //topLight.position.set(0,boundingbox.box.max.y + dis, 0);
+    //bottomLight.position.set(0,boundingbox.box.min.y - dis, 0);
+
     boundingbox.update();
     if (objectCopy !== undefined) objectCopy.rotation.z = 0;
 

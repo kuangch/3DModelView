@@ -17,13 +17,52 @@ var size = new Array();
 var timer, weight;
 
 var axis = new THREE.Vector3(0, 1, 0);
-var objColor = 0x999999;
 
 var objLoader = new THREE.OBJMTLLoader();
 
 var mSettings;
 
+var renderAnimateIDs = [];
+
+var objColor = 0x999999;
+
+var frontLight = new THREE.PointLight(0xffffff);
+var backLight = new THREE.PointLight(0xffffff);
+var rightLight = new THREE.PointLight(0xffffff);
+var leftLight = new THREE.PointLight(0xffffff);
+var topLight = new THREE.PointLight(0xffffff);
+var bottomLight = new THREE.PointLight(0xffffff);
+
+function stopMeshRender() {
+    try {
+        var len = renderAnimateIDs.length;
+        for (var i = 0; i < len; i++) {
+            var animateID = renderAnimateIDs.shift();
+            try {
+                var rtn = clearInterval(animateID);
+                console.log('cancelRequestAnimationFrame success id: ' + animateID);
+            } catch (e) {
+                renderAnimateIDs.push(animateID);
+                console.log('cancelRequestAnimationFrame failed')
+            }
+        }
+    } catch (e) {
+    }
+
+    console.log('still run: ' + renderAnimateIDs);
+}
+
+var pb;
 function meshviewer(settings) {
+
+    stopMeshRender();
+
+    try{
+        scene.remove(obj);
+    }catch (e){}
+
+    $(settings.container).html("");
+
     size_verif(settings);
 }
 
@@ -79,31 +118,37 @@ var onLoad = function (object) {
 var onProgress = function (object) {
     var progression = (object.loaded / object.total) * 100;
 
-    jQuery("#progress").show();
+    try {
+        //pb.show();
+        //
+        //if (progression == 100) {
+        //
+        //    pb.progressbar({
+        //        value: false
+        //    })
+        //} else {
+        //
+        //    pb.progressbar({
+        //        value: progression
+        //    });
+        //}
+    } catch (e) {
+    }
 
-    //if (progression > 85) {
-    //    jQuery("#progress").progressbar({
-    //        value: false
-    //    });
-    //} else {
-    //
-    //    jQuery("#progress").progressbar({
-    //        value: progression
-    //    });
-    //}
-
-    console.log(object.total + " " + object.loaded + " " + progression);
+    console.log(" total size:" + object.total + " position:" + object.loaded + " progress:" + progression);
 
 };
 
-var frontLight = new THREE.PointLight(0xffffff);
-var backLight = new THREE.PointLight(0xffffff);
-var rightLight = new THREE.PointLight(0xffffff);
-var leftLight = new THREE.PointLight(0xffffff);
-var topLight = new THREE.PointLight(0xffffff);
-var bottomLight = new THREE.PointLight(0xffffff);
-
-frontLight
+ 
+function returnMtmSett() {
+    return {
+        color: objColor,
+        wireframe: isShowWire ? true : false
+        //ambient:0x262626,
+        //specular:0x666666,
+        //shininess:64,
+    }
+}
 
 function init(settings) {
     isFistRender = true;
@@ -112,24 +157,23 @@ function init(settings) {
     isShoTexture = settings.showTexture == undefined || settings.showTexture ? true : false;
     if (!Detector.webgl) Detector.addGetWebGLMessage();
 
-    if(!renderer)
+    //if(!renderer)
         renderer = new THREE.WebGLRenderer({alpha: true});
         renderer.setSize($(settings.container).width(), $(settings.container).height());
 
-    if(!scene)
+    //if(!scene)
         scene = new THREE.Scene();
     //scene.fog = new THREE.Fog( 0x000000, 800, 2000 );
 
     // Add axes
-    if(!axes)
+    //if(!axes)
         axes = buildAxes(1000);
 
-    if(!camera)
+    //if(!camera)
         camera = new THREE.PerspectiveCamera(45, $(settings.container).width() / $(settings.container).height(), 1, 2000);
         camera.position.y = 800;
 
-    if(!controls)
-        controls = new THREE.TrackballControls(camera);
+    controls = new THREE.TrackballControls(camera,$(settings.container)[0]);
 
     controls.rotateSpeed = 1.0;
     controls.zoomSpeed = 1.2;
@@ -143,15 +187,26 @@ function init(settings) {
 
     controls.keys = [65, 83, 68]; // [ rotateKey, zoomKey, panKey ]
 
-    var ambient = new THREE.AmbientLight(0xaaaaaa);
-    //scene.add(ambient);
+    //if (!ambient)
+    //    ambient = new THREE.AmbientLight(0x888888);
+    //    scene.add(ambient);
 
-    scene.add(frontLight);
+    //if (!frontLight)
+    //    frontLight = new THREE.DirectionalLight(0xffeedd);
+    //    frontLight.position.set(1, 1, 0.5).normalize();
+        //frontLight.position.set(100,200,600);
+        //scene.add(frontLight);
+
+    //var backLight = new THREE.DirectionalLight(0xffeedd);
+    //backLight.position.set(-1, -1, 0.5).normalize();
+    ////scene.add( backLight );
+    scene.add( frontLight );
     scene.add( backLight );
     scene.add( leftLight );
     scene.add( rightLight );
     scene.add( topLight );
     scene.add( bottomLight );
+
 
     /*___________________________________________________________________________
 
@@ -221,6 +276,7 @@ function loadMTL(settings){
                         materialsCreator.preload();
                         var loader = new THREE.XHRLoader(scope.manager);
                         loader.setCrossOrigin(this.crossOrigin);
+                        loader.load = My_XHRLoader_load;
                         // Overwriting OBJMTLLoader to allow progression monitoring : adding onProgress & onError to loader.load function
                         loader.load(url, function (text) {
                             var object = scope.parse(text);
@@ -271,18 +327,9 @@ function addTexture() {
     isShoTexture = true;
 }
 
-function returnMtmSett() {
-    return {
-        color: objColor,
-        wireframe: isShowWire ? true : false,
-        //ambient:0x262626,
-        //specular:0x666666,
-        //shininess:64,
-    }
-}
 function removeTexture() {
 
-    changeObjStatus(blankMat,returnMtmSett());
+    changeObjStatus(blankMat, returnMtmSett());
     isShoTexture = false;
 
 }
@@ -463,8 +510,7 @@ function resetObjectPosition() {
     objectCopy.position.x = -boundingbox.box.min.x - size.x / 2;
     objectCopy.position.y = -boundingbox.box.min.y - size.y / 2;
     objectCopy.position.z = -boundingbox.box.min.z - size.z / 2;
-
-    // set position
+    
     var dis = 1000;
     frontLight.position.set(boundingbox.box.max.x + dis, dis/10,0);
     backLight.position.set(boundingbox.box.min.x - dis,0, 0);
@@ -472,7 +518,6 @@ function resetObjectPosition() {
     rightLight.position.set(0, 0, boundingbox.box.min.z - dis);
     //topLight.position.set(0,boundingbox.box.max.y + dis, 0);
     //bottomLight.position.set(0,boundingbox.box.min.y - dis, 0);
-
     boundingbox.update();
     if (objectCopy !== undefined) objectCopy.rotation.z = 0;
 
@@ -538,8 +583,11 @@ function rotateLeftSlow() {
 }
 
 function animate(settings) {
-    requestAnimationFrame(animate);
-    render();
+
+    var renderAnimateID = setInterval(function(){
+        render();
+    },1000/50);
+    renderAnimateIDs.push(renderAnimateID);
 }
 
 var isFistRender = true;
@@ -553,10 +601,20 @@ function render() {
     //controls.target(cameraTarget);
     controls.update(); //for cameras
     renderer.render(scene, camera);
+
+    if (isFistRender){
+        console.log("start render! ");
+
+        if(mSettings.startRenderCb instanceof Function){
+            mSettings.startRenderCb();
+        }
+    }
+
     if(isFistRender && mSettings.showTexture == false){
         removeTexture();
-        isFistRender = false;
     }
+
+    isFistRender = false;
 }
 
 function buildAxes(length) {
@@ -610,20 +668,15 @@ function size_verif(settings) {
         url: settings.meshFile,
         success: function (msg) {
             var size = xhr.getResponseHeader('Content-Length');
-
             size = parseInt(size);
-
-            var limit = 20 * 1024 * 1024; // 20 MB
-
             console.log("size = " + size);
-            console.log("limit = " + limit);
 
-            if (size < limit) {
-                init(settings);
-            } else {
-                if (confirm("The requested file's size is over " + getReadableFileSizeString(size) + " \nLoading this object can take a while. \nAre you sure you want to load it ?")) {
-                    init(settings);
-                }
+            init(settings);
+        },
+        error: function () {
+            console.log("load model failed ");
+            if(settings.loadFailed instanceof Function){
+                settings.loadFailed();
             }
         }
     });
@@ -649,3 +702,62 @@ jQuery(document).ready(function () {
     jQuery("#face-buttons .buttons-detail").show();
 
 });
+
+
+// overwriting THREE.XHLLoading `s load method
+var My_XHRLoader_load = function (url, onLoad, onProgress, onError) {
+
+    var scope = this;
+
+    var cached = scope.cache.get(url);
+
+    if (cached !== undefined) {
+
+        onLoad(cached);
+        return;
+
+    }
+
+    var request = new XMLHttpRequest();
+
+    if (onLoad !== undefined) {
+
+        request.addEventListener('load', function (event) {
+
+            scope.cache.add(url, event.target.responseText);
+
+            onLoad(event.target.responseText);
+            scope.manager.itemEnd(url);
+
+        }, false);
+
+    }
+
+    if (onProgress !== undefined) {
+
+        request.addEventListener('progress', function (event) {
+
+            onProgress(event);
+
+        }, false);
+
+    }
+
+    if (onError !== undefined) {
+
+        request.addEventListener('error', function (event) {
+
+            onError(event);
+
+        }, false);
+
+    }
+
+    if (this.crossOrigin !== undefined) request.crossOrigin = this.crossOrigin;
+
+    request.open('GET', url, true);
+    request.send(null);
+
+    scope.manager.itemStart(url);
+
+};

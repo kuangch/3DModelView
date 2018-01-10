@@ -10,7 +10,7 @@ var container, stats;
 var camera, scene, renderer, controls,
     boundingbox, sceneRadiusForCamera,
     plinth, cubeMaterial, objectCopy, rotate, axes,
-    ambient,frontLight;
+    ambient, pointLight;
 
 var size = new Array();
 
@@ -18,20 +18,11 @@ var timer, weight;
 
 var axis = new THREE.Vector3(0, 1, 0);
 
-var objLoader = new THREE.OBJMTLLoader();
+var objLoader = new THREE.OBJLoader();
 
 var mSettings;
 
 var renderAnimateIDs = [];
-
-var objColor = 0x999999;
-
-var frontLight = new THREE.PointLight(0xffffff);
-var backLight = new THREE.PointLight(0xffffff);
-var rightLight = new THREE.PointLight(0xffffff);
-var leftLight = new THREE.PointLight(0xffffff);
-var topLight = new THREE.PointLight(0xffffff);
-var bottomLight = new THREE.PointLight(0xffffff);
 
 function stopMeshRender() {
     try {
@@ -57,18 +48,15 @@ function meshviewer(settings) {
 
     stopMeshRender();
 
-    try{
+    try {
         scene.remove(obj);
-    }catch (e){}
+    } catch (e) {
+    }
 
     $(settings.container).html("");
 
     size_verif(settings);
 }
-
-var callbackProgress = function (progress, result) {
-    console.log(progress);
-};
 
 var obj;
 var textureMat;
@@ -79,40 +67,31 @@ var isShoTexture;
 
 var onLoad = function (object) {
 
-    var zAxis = new THREE.Vector3(1, 0, 0);
     var xAxis = new THREE.Vector3(0, 1, 0);
 
     // Rotation on X Axis to reflect front face as shown in Meshlab
     object.rotateOnAxis(xAxis, 90 * Math.PI / 180);
 
-    // object.rotateOnAxis(zAxis, -90 * Math.PI/180);
-
-    scene.add(obj);
+    scene.add(object);
 
     boundingbox = new THREE.BoundingBoxHelper(object, 0xff0000);
 
-
     boundingbox.update();
-
-    sceneRadiusForCamera = Math.max(
-        boundingbox.box.max.y - boundingbox.box.min.y,
-        boundingbox.box.max.z - boundingbox.box.min.z,
-        boundingbox.box.max.x - boundingbox.box.min.x
-    ) / 2 * (1 + Math.sqrt(5)); // golden number to beautify display
-
-    console.log(sceneRadiusForCamera);
-
-    showFront();
-
-
-    jQuery("#progress").hide();
 
     // Copy the object to a global variable, so that it's accessible from everyWhere in this code
     objectCopy = object;
 
     resetObjectPosition();
 
-	animate(mSettings);
+    sceneRadiusForCamera = Math.max(size.x, size.y, size.z) / 2 * (1 + Math.sqrt(5)); // golden number to beautify display
+
+    console.log(sceneRadiusForCamera);
+
+    showFront();
+
+    jQuery("#progress").hide();
+
+    animate(mSettings);
 };
 
 var onProgress = function (object) {
@@ -139,10 +118,9 @@ var onProgress = function (object) {
 
 };
 
- 
+
 function returnMtmSett() {
     return {
-        color: objColor,
         wireframe: isShowWire ? true : false
         //ambient:0x262626,
         //specular:0x666666,
@@ -158,22 +136,21 @@ function init(settings) {
     if (!Detector.webgl) Detector.addGetWebGLMessage();
 
     //if(!renderer)
-        renderer = new THREE.WebGLRenderer({alpha: true});
-        renderer.setSize($(settings.container).width(), $(settings.container).height());
+    renderer = new THREE.WebGLRenderer({alpha: true});
+    renderer.setSize($(settings.container).width(), $(settings.container).height());
 
     //if(!scene)
-        scene = new THREE.Scene();
+    scene = new THREE.Scene();
     //scene.fog = new THREE.Fog( 0x000000, 800, 2000 );
 
     // Add axes
     //if(!axes)
-        axes = buildAxes(1000);
+    axes = buildAxes(1000);
 
     //if(!camera)
-        camera = new THREE.PerspectiveCamera(45, $(settings.container).width() / $(settings.container).height(), 1, 2000);
-        camera.position.y = 800;
+    camera = new THREE.PerspectiveCamera(45, $(settings.container).width() / $(settings.container).height(), 1, 2000);
 
-    controls = new THREE.TrackballControls(camera,$(settings.container)[0]);
+    controls = new THREE.TrackballControls(camera, $(settings.container)[0]);
 
     controls.rotateSpeed = 1.0;
     controls.zoomSpeed = 1.2;
@@ -187,25 +164,12 @@ function init(settings) {
 
     controls.keys = [65, 83, 68]; // [ rotateKey, zoomKey, panKey ]
 
-    //if (!ambient)
-    //    ambient = new THREE.AmbientLight(0x888888);
-    //    scene.add(ambient);
+    var ambientLight = new THREE.AmbientLight(0xdddddd, 0.4);
+    scene.add(ambientLight);
 
-    //if (!frontLight)
-    //    frontLight = new THREE.DirectionalLight(0xffeedd);
-    //    frontLight.position.set(1, 1, 0.5).normalize();
-        //frontLight.position.set(100,200,600);
-        //scene.add(frontLight);
-
-    //var backLight = new THREE.DirectionalLight(0xffeedd);
-    //backLight.position.set(-1, -1, 0.5).normalize();
-    ////scene.add( backLight );
-    scene.add( frontLight );
-    scene.add( backLight );
-    scene.add( leftLight );
-    scene.add( rightLight );
-    scene.add( topLight );
-    scene.add( bottomLight );
+    pointLight = new THREE.PointLight();
+    camera.add(pointLight);
+    scene.add(camera);
 
 
     /*___________________________________________________________________________
@@ -221,48 +185,11 @@ function init(settings) {
     window.addEventListener('resize', onWindowResize, false);
 
     camera.lookAt(new THREE.Vector3(0, -1, 0));
-    console.log(camera);
 }
 
-function loadMTL(settings){
+function loadMTL(settings) {
     switch (settings.format) {
-        case 'utf8':
-            var loader = new THREE.UTF8Loader();
-            loader.load(settings.meshFile, function (object) {
-
-                // Computing bounding box for object : http://stackoverflow.com/questions/11782113/how-to-compute-bounding-box-after-using-objloader-three-js
-                object.traverse(function (child) {
-                    if (child instanceof THREE.Mesh) {
-                        child.geometry.computeBoundingBox();
-                        object.bBox = child.geometry.boundingBox;
-                    }
-                });
-                width = object.bBox.max.x - object.bBox.min.x;
-                height = object.bBox.max.y - object.bBox.min.y;
-                depth = object.bBox.max.z - object.bBox.min.z;
-                console.log("width: " + width + " | height: " + height + " | depth: " + depth);
-                maxsize = width;
-                if (height > maxsize) maxsize = height;
-                if (depth > maxsize) maxsize = depth;
-
-                // Computing scale. 60 is an arbitrary ratio
-                s = 60 / maxsize;
-
-                object.scale.set(s, s, s);
-
-                scene.add(object);
-                // Moving the scene to put the barycenter at 0,0,0
-                object.translateX(-s * (object.bBox.min.x + (width / 2)));
-                object.translateY(-s * (object.bBox.min.y + (height / 2)));
-                object.translateZ(-s * (object.bBox.min.z + (depth / 2)));
-
-            }, {normalizeRGB: true});
-            break;
         case 'obj':
-
-            objLoader.callbackProgress = callbackProgress;
-            objLoader.callbackSync = callbackProgress;
-
             // Overwriting OBJMTLLoader to allow progression monitoring
             objLoader.load = function (url, mtlurl, onLoad, onProgress, onError) {
                 var scope = this;
@@ -272,24 +199,21 @@ function loadMTL(settings){
                     blankMat = materials;
                     mtlLoader.load(mtlurl, function (materials) {
                         textureMat = materials;
-                        var materialsCreator = materials;
-                        materialsCreator.preload();
-                        var loader = new THREE.XHRLoader(scope.manager);
-                        loader.setCrossOrigin(this.crossOrigin);
-                        loader.load = My_XHRLoader_load;
-                        // Overwriting OBJMTLLoader to allow progression monitoring : adding onProgress & onError to loader.load function
+                        textureMat.preload();
+                        var loader = new THREE.FileLoader(scope.manager);
+                        //loader.load = My_XHRLoader_load;
                         loader.load(url, function (text) {
-                            var object = scope.parse(text);
-                            obj = object;
+                            obj = scope.parse(text);
                             obj.traverse(function (object) {
                                 if (object instanceof THREE.Mesh) {
-                                    if (object.material.name) {
+                                    for (m in object.material) {
+                                        if (object.material[m].name) {
+                                            // var material = (settings.showTexture == undefined || settings.showTexture ? textureMat : blankMat).create(object.material.name);
+                                            var material = textureMat.create(object.material[m].name);
+                                            material.setValues(returnMtmSett());
+                                            if (material) object.material[m] = material;
 
-                                        // var material = (settings.showTexture == undefined || settings.showTexture ? textureMat : blankMat).create(object.material.name);
-                                        var material = textureMat.create(object.material.name);
-                                        material.setValues(returnMtmSett());
-                                        if (material) object.material = material;
-
+                                        }
                                     }
                                 }
                             });
@@ -301,8 +225,6 @@ function loadMTL(settings){
 
             };
 
-            var loadFunctionBackup = objLoader.load;
-
             objLoader.load(settings.meshFile, settings.mtlFile, onLoad, onProgress);
             break;
     }
@@ -310,21 +232,24 @@ function loadMTL(settings){
 
 function change2grid() {
 
-    changeObjStatus(isShoTexture ? textureMat : blankMat, {color: objColor, wireframe: true});
+    changeObjStatus(isShoTexture ? textureMat : blankMat, {wireframe: true});
     isShowWire = true;
 }
 
 function change2entity() {
 
-    changeObjStatus(isShoTexture ? textureMat : blankMat, {color: objColor, wireframe: false});
+    changeObjStatus(isShoTexture ? textureMat : blankMat, {wireframe: false});
     isShowWire = false;
 
 }
 
 function addTexture() {
 
-    changeObjStatus(textureMat,{color: objColor, wireframe: isShowWire ? true : false});
+    changeObjStatus(textureMat, {wireframe: isShowWire ? true : false});
     isShoTexture = true;
+
+    pointLight.color.set(0xffffff);
+    pointLight.intensity = 0.8;
 }
 
 function removeTexture() {
@@ -332,24 +257,31 @@ function removeTexture() {
     changeObjStatus(blankMat, returnMtmSett());
     isShoTexture = false;
 
+    pointLight.color.set(0x888888);
+    pointLight.intensity = 0.6;
+
 }
 
 function changeObjStatus(mat, settings) {
 
-    if(obj === undefined){
+    if (obj === undefined) {
         return;
     }
     scene.remove(obj);
     obj.traverse(function (object) {
         if (object instanceof THREE.Mesh) {
-            if (object.material.name) {
-                var material = mat.create(object.material.name);
-                material.setValues(settings);
-                if (material) object.material = material;
+            for (m in object.material) {
+                if (object.material[m].name) {
+                    // var material = (settings.showTexture == undefined || settings.showTexture ? textureMat : blankMat).create(object.material.name);
+                    var material = mat.create(object.material[m].name);
+                    material.setValues(settings);
+                    if (material) object.material[m] = material;
+
+                }
             }
         }
-        scene.add(obj);
     });
+    scene.add(obj);
 
 }
 
@@ -373,14 +305,14 @@ function addPlinth() {
         //cubeMaterial.transparent = true;
         plinth = new THREE.Mesh(new THREE.BoxGeometry(
             (size.x),
-            (size.y),
+            (size.y / 2),
             (size.z)
         ), cubeMaterial);
         console.log(plinth);
         boundingbox.update();
         //scene.addObject( plinth );
         //plinth.computeBoundingBox();
-        plinth.position.y = boundingbox.box.min.y * 2;
+        plinth.position.y = boundingbox.geometry.attributes.position.array[7] * 3 / 2;
         plinth.name = "plinth";
     }
     if (!scene.getObjectByName('plinth', true)) {
@@ -499,25 +431,19 @@ function resetObjectPosition() {
     boundingbox.update();
 
     // If you just want the numbers
-    console.log(boundingbox.box.min);
-    console.log(boundingbox.box.max);
+    console.log("box radius: " + boundingbox.geometry.boundingSphere.radius);
 
-    size.x = boundingbox.box.max.x - boundingbox.box.min.x;
-    size.y = boundingbox.box.max.y - boundingbox.box.min.y;
-    size.z = boundingbox.box.max.z - boundingbox.box.min.z;
+    size.x = boundingbox.geometry.attributes.position.array[0] - boundingbox.geometry.attributes.position.array[3];
+    size.y = boundingbox.geometry.attributes.position.array[1] - boundingbox.geometry.attributes.position.array[7];
+    size.z = boundingbox.geometry.attributes.position.array[2] - boundingbox.geometry.attributes.position.array[14];
+
+    console.log(size);
 
     // Repositioning object
-    objectCopy.position.x = -boundingbox.box.min.x - size.x / 2;
-    objectCopy.position.y = -boundingbox.box.min.y - size.y / 2;
-    objectCopy.position.z = -boundingbox.box.min.z - size.z / 2;
-    
-    var dis = 1000;
-    frontLight.position.set(boundingbox.box.max.x + dis, dis/10,0);
-    backLight.position.set(boundingbox.box.min.x - dis,0, 0);
-    leftLight.position.set(0, 0, boundingbox.box.max.z + dis);
-    rightLight.position.set(0, 0, boundingbox.box.min.z - dis);
-    //topLight.position.set(0,boundingbox.box.max.y + dis, 0);
-    //bottomLight.position.set(0,boundingbox.box.min.y - dis, 0);
+    objectCopy.position.x = -boundingbox.geometry.attributes.position.array[3] - size.x / 2;
+    objectCopy.position.y = -boundingbox.geometry.attributes.position.array[7] - size.y / 2;
+    objectCopy.position.z = -boundingbox.geometry.attributes.position.array[14] - size.z / 2;
+
     boundingbox.update();
     if (objectCopy !== undefined) objectCopy.rotation.z = 0;
 
@@ -584,9 +510,9 @@ function rotateLeftSlow() {
 
 function animate(settings) {
 
-    var renderAnimateID = setInterval(function(){
+    var renderAnimateID = setInterval(function () {
         render();
-    },1000/50);
+    }, 1000 / 50);
     renderAnimateIDs.push(renderAnimateID);
 }
 
@@ -600,18 +526,19 @@ function render() {
     //console.log(scene.position);
     //controls.target(cameraTarget);
     controls.update(); //for cameras
-    renderer.render(scene, camera);
 
-    if (isFistRender){
-        console.log("start render! ");
-
-        if(mSettings.startRenderCb instanceof Function){
-            mSettings.startRenderCb();
-        }
+    if (isFistRender && mSettings.showTexture == false) {
+        removeTexture();
     }
 
-    if(isFistRender && mSettings.showTexture == false){
-        removeTexture();
+    renderer.render(scene, camera);
+
+    if (isFistRender) {
+        console.log("start render! ");
+
+        if (mSettings.startRenderCb instanceof Function) {
+            mSettings.startRenderCb();
+        }
     }
 
     isFistRender = false;
@@ -675,7 +602,7 @@ function size_verif(settings) {
         },
         error: function () {
             console.log("load model failed ");
-            if(settings.loadFailed instanceof Function){
+            if (settings.loadFailed instanceof Function) {
                 settings.loadFailed();
             }
         }

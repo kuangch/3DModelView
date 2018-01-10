@@ -15,16 +15,10 @@
 
     <script src="lib/jquery/jquery.min.js"></script>
     <script src="lib/jquery-ui/jquery-ui.min.js"></script>
-    <script src="lib/threejs/three.min.js"></script>
+    <script src="lib/threejs_ext/three.min.js"></script>
 
-    <script src="lib/threejs/loaders/BinaryLoader.js"></script>
-    <script src="lib/threejs/loaders/MTLLoader.js"></script>
-    <script src="lib/threejs/loaders/OBJMTLLoader.js"></script>
-
-    <script src="lib/threejs/loaders/UTF8Loader.js"></script>
-
-    <script src="lib/threejs/loaders/ctm/lzma.js"></script>
-    <script src="lib/threejs/loaders/ctm/CTMLoader.js"></script>
+    <script src="lib/threejs_ext/MTLLoader.js"></script>
+    <script src="lib/threejs_ext/OBJLoader.js"></script>
 
     <script src="lib/threejs/Detector.js"></script>
     <script src="lib/threejs/TrackballControls.js"></script>
@@ -32,7 +26,7 @@
 
     <script id="objectView" src="meshviewer.js"></script>
 
-    <div style="height:200px; width:200px"  id="viewer"></div>
+    <div style="height:800px; width:800px"  id="viewer"></div>
     <div id="progress"></div>
     <div id="timer"></div>
     <div id="weight"></div>
@@ -81,7 +75,7 @@
 
                     <div>
                         <a>自动旋转</a>
-                        <input id="cb_rotate" type="checkbox" class="js-switch js-check-change" checked
+                        <input id="cb_rotate" type="checkbox" class="js-switch js-check-change"
                                onchange="toggleChange(event,'rotate')"/><br>
                     </div>
 
@@ -119,14 +113,6 @@
 </body>
 <script src="switch/switchery.js"></script>
 <script>
-    meshviewer({
-        'meshFile': 'examples/test/neutral.obj',
-        'mtlFile': 'examples/test/neutral.mtl',
-        'showTexture': false,
-        'container': '#viewer',
-        'format': 'obj'
-    });
-
 
     // ios7 toggle
     var elems = document.querySelectorAll('.js-switch');
@@ -165,6 +151,12 @@
         rotate = cb_rotate.checked;
     }
 
-
+    meshviewer({
+        'meshFile': 'examples/test/neutral.obj',
+        'mtlFile': 'examples/test/neutral.mtl',
+        'showTexture': false,
+        'container': '#viewer',
+        'format': 'obj'
+    });
 </script>
 </html>

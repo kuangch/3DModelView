@@ -67,6 +67,10 @@ var isShoTexture;
 
 var onLoad = function (object) {
 
+    if (mSettings.success) {
+        mSettings.success(true)
+    }
+
     var xAxis = new THREE.Vector3(0, 1, 0);
 
     // Rotation on X Axis to reflect front face as shown in Meshlab
@@ -598,6 +602,10 @@ function size_verif(settings) {
             size = parseInt(size);
             console.log("size = " + size);
 
+            if(size < 200 && settings.success){
+                settings.success(false);
+                return;
+            }
             init(settings);
         },
         error: function () {

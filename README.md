@@ -18,4 +18,4 @@ meshviewer({
 ```
 
 ## 效果
-![image](https://github.com/kuangch/3DModelView/blob/master/assets/facemodel.gif)
+![image](https://github.com/kuangch/3DModelView/blob/master/assets/ring.gif)

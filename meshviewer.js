@@ -208,19 +208,7 @@ function loadMTL(settings) {
                         //loader.load = My_XHRLoader_load;
                         loader.load(url, function (text) {
                             obj = scope.parse(text);
-                            obj.traverse(function (object) {
-                                if (object instanceof THREE.Mesh) {
-                                    for (m in object.material) {
-                                        if (object.material[m].name) {
-                                            // var material = (settings.showTexture == undefined || settings.showTexture ? textureMat : blankMat).create(object.material.name);
-                                            var material = textureMat.create(object.material[m].name);
-                                            material.setValues(returnMtmSett());
-                                            if (material) object.material[m] = material;
-
-                                        }
-                                    }
-                                }
-                            });
+                            changeObjStatus(textureMat,settings)
                             onLoad(obj);
                         }, onProgress, onError);
 
@@ -274,14 +262,21 @@ function changeObjStatus(mat, settings) {
     scene.remove(obj);
     obj.traverse(function (object) {
         if (object instanceof THREE.Mesh) {
-            for (m in object.material) {
-                if (object.material[m].name) {
-                    // var material = (settings.showTexture == undefined || settings.showTexture ? textureMat : blankMat).create(object.material.name);
-                    var material = mat.create(object.material[m].name);
-                    material.setValues(settings);
-                    if (material) object.material[m] = material;
 
+            if (object.material instanceof Array) {
+                for (m in object.material) {
+                    if (object.material[m].name) {
+                        // var material = (settings.showTexture == undefined || settings.showTexture ? textureMat : blankMat).create(object.material.name);
+                        var material = mat.create(object.material[m].name);
+                        material.setValues(settings);
+                        if (material) object.material[m] = material;
+
+                    }
                 }
+            }else{
+                var material = mat.create(object.material.name);
+                material.setValues(settings);
+                if (material) object.material = material;
             }
         }
     });
